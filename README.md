@@ -55,3 +55,8 @@ The electronics are:
 
   the GUI tool that edits audio parameters in real time
   for Reverb_Test and (soon) BT_Teensy
+
+### wav2sketch
+
+  Paul Stoffregen's tool to convert .WAV files into C++ sources files
+  in the format used by the playMem audio module.
