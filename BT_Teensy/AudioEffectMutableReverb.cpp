@@ -4,11 +4,11 @@
 #define V2F(v) ((float)(v) / (float)REVERB_SCALE_RESOLUTION)
 
 static const Parameter reverb_params[] = {
-  { "reverb.input_gain", 0, REVERB_SCALE_RESOLUTION, F2V(0.25)  },
-  { "reverb.time",       0, REVERB_SCALE_RESOLUTION, F2V(1.0)   },
-  { "reverb.diffusion",  0, REVERB_SCALE_RESOLUTION, F2V(0.625) },
-  { "reverb.low_pass",   0, REVERB_SCALE_RESOLUTION, F2V(0.7)   },
-  { "reverb.amount",     0, REVERB_SCALE_RESOLUTION, F2V(0.0)   },
+  { "reverb.input_gain", 0, REVERB_SCALE_RESOLUTION, F2V(0.25),  "" },
+  { "reverb.time",       0, REVERB_SCALE_RESOLUTION, F2V(1.0),   "" },
+  { "reverb.diffusion",  0, REVERB_SCALE_RESOLUTION, F2V(0.625), "" },
+  { "reverb.low_pass",   0, REVERB_SCALE_RESOLUTION, F2V(0.7),   "" },
+  { "reverb.amount",     0, REVERB_SCALE_RESOLUTION, F2V(0.0),   "" },
 };
 static const size_t reverb_param_count = (&reverb_params)[1] - reverb_params;
 static Parameter::value_type reverb_param_values[reverb_param_count];
@@ -91,14 +91,12 @@ AudioEffectMutableReverb::set(const char *group_member, Parameter::value_type ne
 
 void AudioEffectMutableReverb::amount(float amount) {
   __disable_irq();
-  Serial.printf("amount = %g\n", amount);
   reverb.set_amount(amount);
   __enable_irq();
 }
 
 void AudioEffectMutableReverb::inputGain(float input_gain) {
   __disable_irq();
-  Serial.printf("input_gain = %g\n", input_gain);
   reverb.set_input_gain(input_gain);
   __enable_irq();
 }

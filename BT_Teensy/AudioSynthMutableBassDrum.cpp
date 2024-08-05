@@ -3,10 +3,10 @@
 #include "bass_drum.h"
 
 static Parameter bass_params[] = {
-  { "bass.frequency", -32768, +32767,      0 },
-  { "bass.punch",          0,  65535,  65535 },
-  { "bass.tone",           0,  65535,  32768 },
-  { "bass.decay",          0,  65535,  32768 },
+  { "bass.frequency", -32768, +32767,      0, "" },
+  { "bass.punch",          0,  65535,  65535, "" },
+  { "bass.tone",           0,  65535,  32768, "" },
+  { "bass.decay",          0,  65535,  32768, "" },
 };
 static const size_t bass_param_count = (&bass_params)[1] - bass_params;
 static Parameter::value_type bass_param_values[bass_param_count];

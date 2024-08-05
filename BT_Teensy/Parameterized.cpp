@@ -29,7 +29,7 @@ Parameter::value_type Parameterized::get(const char *group_member) const {
 void Parameterized::init()
 {
   for (size_t i = 0; i < count; i++) {
-    // set(params[i].group_member, params[i].default_);
+    set(params[i].group_member, params[i].default_);
   }
 }
 

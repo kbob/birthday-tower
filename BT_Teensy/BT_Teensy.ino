@@ -31,6 +31,7 @@
 #include "AudioManager.h"
 #include "GoldenColors.h"
 #include "Sigmap.h"
+#include "Trace.h"
 
 #define LED_STRIP_PIN 1
 #define BUTTON_PIN 2
@@ -381,7 +382,10 @@ public:
 
 void setup() {
 
+  Trace::tracef("begin setup");
   Serial.begin(9600);
+  while (!Serial) continue;
+  Trace::tracef("serial is up");
 
   ButtonManager::setup();
   LEDManager::setup();
@@ -389,6 +393,12 @@ void setup() {
 }
 
 void loop() {
+  static bool printed;
+  if (!printed && millis() >= 3000) {
+    Trace::print_all();
+    printed = true;
+  }
+
   ButtonManager::loop();
   LEDManager::loop();
   AudioManager::loop();
