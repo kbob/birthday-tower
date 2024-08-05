@@ -64,7 +64,9 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=706,445
 float sgtl_volume;
 size_t top_rotor, bottom_rotor;
 AudioSynthMutableFMDrum *top_drums[] = { &top1, &top2, &top3, &top4 };
-AudioSynthMutableFMDrum *bottom_drums[] = { &bottom1, &bottom2, &bottom3, &bottom4 };
+AudioSynthMutableFMDrum *bottom_drums[] = {
+  &bottom1, &bottom2, &bottom3, &bottom4
+};
 size_t top_count = 4, bottom_count = 4;
 
 static float scale_f2i(float f) {
@@ -72,29 +74,29 @@ static float scale_f2i(float f) {
 }
 
 void AudioManager::trigger_launch(float frequency, float duration) {
-  // int ifreq = max(0, min(65535, (int)(65535.0f * frequency)));
-  // int idur = max(0, min(65535, (int) (65535.0f * duration)));
   launch1.setFrequency(scale_f2i(frequency));
   launch1.setDecay(scale_f2i(duration));
   launch1.noteOn();
 }
 
-void AudioManager::trigger_top_bounce(float volume, float frequency, float duration) {
+void
+AudioManager::trigger_top_bounce(float volume,
+                                 float frequency,
+                                 float duration) {
   auto *drum = top_drums[top_rotor];
   mixer1.gain(top_rotor, volume);
-  // int ifreq = max(0, min(65535, (int)(65535.0f * frequency)));
-  // int idur = max(0, min(65535, (int) (65535.0f * duration)));
   drum->setFrequency(scale_f2i(frequency));
   drum->setDecay(scale_f2i(duration));
   drum->noteOn();
   top_rotor = (top_rotor + 1) % top_count;
 }
 
-void AudioManager::trigger_bottom_bounce(float volume, float frequency, float duration) {
+void
+AudioManager::trigger_bottom_bounce(float volume,
+                                    float frequency,
+                                    float duration) {
   auto *drum = bottom_drums[bottom_rotor];
   mixer2.gain(bottom_rotor, volume);
-  // int ifreq = max(0, min(65535, (int)(65530.0f * frequency)));
-  // int idur = max(0, min(65535, (int) (65535.0f * duration)));
   drum->setFrequency(scale_f2i(frequency));
   drum->setDecay(scale_f2i(duration));
   drum->noteOn();
@@ -194,7 +196,8 @@ void AudioManager::loop() {
   static uint32_t print_time;
   uint32_t now = millis();
   if (now - print_time > 1000) {
-    // Serial.printf("Audio Memory: %d, max %d\n", AudioMemoryUsage(), AudioMemoryUsageMax());
+    // Serial.printf("Audio Memory: %d, max %d\n",
+    //               AudioMemoryUsage(), AudioMemoryUsageMax());
     print_time += 1000;
   }
 }

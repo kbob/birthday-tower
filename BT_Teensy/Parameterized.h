@@ -24,11 +24,12 @@ public:
   virtual size_t parameter_count() const;
   virtual const Parameter *describe(size_t index) const;
   virtual Parameter::value_type get(const char *group_member) const;
-  virtual void set(const char *group_member, Parameter::value_type new_value) = 0;
+  virtual void 
+  set(const char *group_member, Parameter::value_type new_value) = 0;
 
 protected:
-  Parameterized(const Parameter *params, Parameter::value_type *values, size_t count)
-  : params(params), values(values), count(count)
+  Parameterized(const Parameter *ps, Parameter::value_type *vs, size_t ct)
+  : params(ps), values(vs), count(ct)
   {}
   
   void init();

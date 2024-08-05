@@ -113,6 +113,7 @@ float AudioSynthMutableFMDrum::cpu() {
     blocks_processed = 0;
   }
   __enable_irq();
-  const float usec_per_block = 1e6 * AUDIO_BLOCK_SAMPLES / AUDIO_SAMPLE_RATE_EXACT;
+  const float usec_per_block =
+    1e6 * AUDIO_BLOCK_SAMPLES / AUDIO_SAMPLE_RATE_EXACT;
   return cpu / (blks * usec_per_block);
 }

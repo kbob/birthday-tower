@@ -3,7 +3,8 @@
 
 #include <math.h>
 
-// Generalized sigmoid mapping function.  Scales its input X, applies a logistic function, then scales its output, Y.
+// Generalized sigmoid mapping function.  Scales its input X, applies
+// a logistic function, then scales its output, Y.
 //
 // Logistic function logistic(x) = 1 / (1 + e^(-x))
 //
