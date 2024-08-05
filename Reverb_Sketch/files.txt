@@ -1,0 +1,15 @@
+cosine_oscillator.h
+dsp.h
+excitation.h
+fx_engine.h
+gate_processor.h
+random.cc
+random.h
+resources.cc
+resources.h
+reverb.h
+ring_buffer.h
+snare_drum.cc
+snare_drum.h
+stmlib.h
+svf.h
