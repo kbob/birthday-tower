@@ -6,7 +6,7 @@ class AudioManager {
 public:
 
   // Velocity is in 16.16 fixed-point format, representing
-  // the number of LEDs per refresh.  The refresh rate is
+  // the number of LEDs moved per refresh.  The refresh rate is
   // roughly 158 Hz.  So velocity of 1000 would be
   // 2.4xxx LEDs per second.  Completely unintuitive, sorry.
   //
@@ -19,14 +19,6 @@ public:
   static void trigger_launch(int velocity);
   static void trigger_top_bounce(float volume, int velocity);
   static void trigger_bottom_bounce(float volume, int velocity);
-
-  // // volume, frequency, and duration are [0..1].
-  // static void
-  // trigger_launchXXX(float frequency, float duration);
-  // static void
-  // trigger_top_bounceXXX(float volume, float frequency, float duration);
-  // static void
-  // trigger_bottom_bounceXXX(float volume, float frequeny, float duration);
 
   static void setup();
   static void loop();

@@ -245,7 +245,6 @@ private:
 };
 static AudioManParameters audio_params;
 
-// static float sgtl_volume;
 static size_t top_rotor, bottom_rotor;
 static AudioSynthMutableFMDrum *top_drums[] = {
   &top1, &top2, &top3, &top4
@@ -254,11 +253,6 @@ static AudioSynthMutableFMDrum *bottom_drums[] = {
   &bottom1, &bottom2, &bottom3, &bottom4
 };
 static size_t top_count = 4, bottom_count = 4;
-
-// // XXX deprecate me?
-// static int scale_f2i(float f) {
-//   return max(0, min(65535, (int)(65535.0f * f)));
-// }
 
 #if defined(USB_DUAL_SERIAL) || defined(USB_TRIPLE_SERIAL)
 
@@ -284,15 +278,6 @@ void AudioManager::trigger_launch(int velocity) {
   launch1.setFrequency(freq);
   launch1.setDecay(dur);
   launch1.noteOn();
-  // auto *p = &launch_freq_map;
-  // Serial.printf("trig_lch: freq_map = {center=%g slope=%g min=%g max=%g}\n",
-  //               p->center_x, p->slope_x, p->min_y, p->max_y);
-  // Serial.printf("          vel=%d freq=%d\n", velocity, freq);
-  // p = &launch_duration_map;
-  // Serial.printf("trig_lch: dur_map = {center=%g slope=%g min=%g max=%g}\n",
-  //               p->center_x, p->slope_x, p->min_y, p->max_y);
-  // Serial.printf("          vel=%d dur=%d\n", velocity, dur);
-  // Serial.printf("\n");
 }
 
 void AudioManager::trigger_top_bounce(float volume, int velocity) {
@@ -321,87 +306,11 @@ void AudioManager::trigger_bottom_bounce(float volume, int velocity) {
   bottom_rotor = (bottom_rotor + 1) % bottom_count;
 }
 
-// void AudioManager::trigger_launchXXX(float frequency, float duration) {
-//   launch1.setFrequency(scale_f2i(frequency));
-//   launch1.setDecay(scale_f2i(duration));
-//   launch1.noteOn();
-// }
-
-// void
-// AudioManager::trigger_top_bounceXXX(float volume,
-//                                  float frequency,
-//                                  float duration) {
-//   auto *drum = top_drums[top_rotor];
-//   mixer1.gain(top_rotor, volume);
-//   drum->setFrequency(scale_f2i(frequency));
-//   drum->setDecay(scale_f2i(duration));
-//   drum->noteOn();
-//   top_rotor = (top_rotor + 1) % top_count;
-// }
-
-// void
-// AudioManager::trigger_bottom_bounceXXX(float volume,
-//                                     float frequency,
-//                                     float duration) {
-//   auto *drum = bottom_drums[bottom_rotor];
-//   mixer2.gain(bottom_rotor, volume);
-//   drum->setFrequency(scale_f2i(frequency));
-//   drum->setDecay(scale_f2i(duration));
-//   drum->noteOn();
-//   bottom_rotor = (bottom_rotor + 1) % bottom_count;
-// }
-
 void AudioManager::setup() {
   AudioMemory(250);
 
-  // sgtl_volume = 0.0;
   sgtl5000_1.enable();
   sgtl5000_1.volume(0.5);
-
-  // top1.setFrequency(32768);
-  // top1.setFMAmount(32768);
-  // top1.setDecay(32768);
-  // top1.setNoise(15000);
-
-  // top2.setFrequency(32768);
-  // top2.setFMAmount(32768);
-  // top2.setDecay(32768);
-  // top2.setNoise(15000);
-
-  // top3.setFrequency(32768);
-  // top3.setFMAmount(32768);
-  // top3.setDecay(32768);
-  // top3.setNoise(15000);
-
-  // top4.setFrequency(32768);
-  // top4.setFMAmount(32768);
-  // top4.setDecay(32768);
-  // top4.setNoise(15000);
-
-  // bottom1.setFrequency(32768);
-  // bottom1.setFMAmount(32768);
-  // bottom1.setDecay(32768);
-  // bottom1.setNoise(15000);
-
-  // bottom2.setFrequency(32768);
-  // bottom2.setFMAmount(32768);
-  // bottom2.setDecay(32768);
-  // bottom2.setNoise(15000);
-
-  // bottom3.setFrequency(32768);
-  // bottom3.setFMAmount(32768);
-  // bottom3.setDecay(32768);
-  // bottom3.setNoise(15000);
-
-  // bottom4.setFrequency(32768);
-  // bottom4.setFMAmount(32768);
-  // bottom4.setDecay(32768);
-  // bottom4.setNoise(15000);
-
-  // launch1.setFrequency(0);
-  // launch1.setPunch(4000);
-  // launch1.setTone(32768);
-  // launch1.setDecay(32768);
 
   mixer1.gain(0, 0.25);
   mixer1.gain(1, 0.25);
@@ -437,17 +346,6 @@ void AudioManager::setup() {
 }
 
 void AudioManager::loop() {
-  // if (sgtl_volume < 0.5) {
-  //   static uint32_t prev_adjust;
-  //   uint32_t now = millis();
-  //   if (prev_adjust < now) {
-  //     prev_adjust = now;
-  //     sgtl_volume += 0.001;
-  //     if (sgtl_volume > 0.5)
-  //       sgtl_volume = 0.5;
-  //     sgtl5000_1.volume(sgtl_volume);
-  //   }
-  // }
 
   // static uint32_t print_time;
   // uint32_t now = millis();
