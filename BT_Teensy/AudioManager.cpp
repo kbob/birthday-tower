@@ -72,24 +72,24 @@ static const Parameter manager_params[] = {
   { "launch.center_velocity", 40000, 120000,  40000 },
   { "launch.slope",               0,    100,     50, "percent" },
   { "launch.min_freq",       -32768, +32767, -32768 },
-  { "launch.max_freq",       -32767, +99999, +32767 },
+  { "launch.max_freq",       -32767, +99999, +49152 },
   { "launch.min_duration",        0,  65535,  65535 },
   { "launch.max_duration",        0,  65535,  16384 },
 
   { "bounce.center_velocity", 40000, 120000,  65000 },
-  { "bounce.slope",               0,    100,     50, "percent" },
+  { "bounce.slope",               0,    100,     65, "percent" },
   { "bounce.min_freq",       -32768, +32767,      0 },
   { "bounce.max_freq",       -32768, +99999, +80000 },
   { "bounce.min_duration",        0,  65535,    255 },
   { "bounce.max_duration",        0,  65535,      0 },
 
-  { "mix.launch",                 0,    100,     70, "percent" },
-  { "mix.bounce",                 0,    100,     40, "percent" },
+  { "mix.launch",                 0,    100,     30, "percent" },
+  { "mix.bounce",                 0,    100,     50, "percent" },
   { "mix.volume",                 0,    100,     50, "percent" },
 
   { "delay.time",                 1,    250,     90, "msec"    },
-  { "delay.cadence",             10,     90,     45, "percent" },
-  { "delay.echo",                 0,    100,     70, "percent" },
+  { "delay.cadence",             10,     90,     40, "percent" },
+  { "delay.echo",                 0,    100,     77, "percent" },
 
   { "reverb.time",                0,    100,     20, "percent" },
   { "reverb.amount",              0,    100,     15, "percent" },
@@ -110,7 +110,7 @@ static Parameter::value_type param_values[manager_param_count];
 // its min and max values.  The values are also hard clipped
 // to [0..65535] in the AudioManger::trigger_* methods.
 
-// SLOPE_MAGIC gives a reasonable range of slopes for teh sigmoid
+// SLOPE_MAGIC gives a reasonable range of slopes for the sigmoid
 // functions.  It was chosen through trial and error.
 // Higher slope makes frequency/duration more sensitive to button duration.
 
@@ -284,15 +284,15 @@ void AudioManager::trigger_launch(int velocity) {
   launch1.setFrequency(freq);
   launch1.setDecay(dur);
   launch1.noteOn();
-  auto *p = &launch_freq_map;
-  Serial.printf("trig_lch: freq_map = {center=%g slope=%g min=%g max=%g}\n",
-                p->center_x, p->slope_x, p->min_y, p->max_y);
-  Serial.printf("          vel=%d freq=%d\n", velocity, freq);
-  p = &launch_duration_map;
-  Serial.printf("trig_lch: dur_map = {center=%g slope=%g min=%g max=%g}\n",
-                p->center_x, p->slope_x, p->min_y, p->max_y);
-  Serial.printf("          vel=%d dur=%d\n", velocity, dur);
-  Serial.printf("\n");
+  // auto *p = &launch_freq_map;
+  // Serial.printf("trig_lch: freq_map = {center=%g slope=%g min=%g max=%g}\n",
+  //               p->center_x, p->slope_x, p->min_y, p->max_y);
+  // Serial.printf("          vel=%d freq=%d\n", velocity, freq);
+  // p = &launch_duration_map;
+  // Serial.printf("trig_lch: dur_map = {center=%g slope=%g min=%g max=%g}\n",
+  //               p->center_x, p->slope_x, p->min_y, p->max_y);
+  // Serial.printf("          vel=%d dur=%d\n", velocity, dur);
+  // Serial.printf("\n");
 }
 
 void AudioManager::trigger_top_bounce(float volume, int velocity) {
