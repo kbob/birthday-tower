@@ -30,8 +30,8 @@
 
 #include "AudioManager.h"
 #include "GoldenColors.h"
-#include "Sigmap.h"
-#include "Trace.h"
+// #include "Sigmap.h"
+// #include "Trace.h"
 
 #define LED_STRIP_PIN 1
 #define BUTTON_PIN 2
@@ -121,22 +121,22 @@ class Sparkler {
     SPARKBURST_SLOWEST = 200, // msec button duration
     SPARKBURST_FASTEST = 40,
 
-    LAUNCH_CENTER = 40000,
-#define LAUNCH_SLOPE 1.74e-5f
-    LAUNCH_FREQ_MIN = -32768,
-    LAUNCH_FREQ_MAX = +32767,
-    LAUNCH_DURATION_MIN = 16384,
-    LAUNCH_DURATION_MAX = 65535,
+//     LAUNCH_CENTER = 40000,
+// #define LAUNCH_SLOPE 1.74e-5f
+//     LAUNCH_FREQ_MIN = -32768,
+//     LAUNCH_FREQ_MAX = +32767,
+//     LAUNCH_DURATION_MIN = 16384,
+//     LAUNCH_DURATION_MAX = 65535,
 
-//     BOUNCE_CENTER = 73728,
-    BOUNCE_CENTER = 65000,
-#define BOUNCE_SLOPE 1.74e-5f
-    BOUNCE_FREQ_MIN = 0,
-    // BOUNCE_FREQ_MAX = 65535,
-    BOUNCE_FREQ_MAX = 80000,
-    BOUNCE_DURATION_MIN = 0,
-    // BOUNCE_DURATION_MAX = 4095,
-    BOUNCE_DURATION_MAX = 255,
+// //     BOUNCE_CENTER = 73728,
+//     BOUNCE_CENTER = 65000,
+// #define BOUNCE_SLOPE 1.74e-5f
+//     BOUNCE_FREQ_MIN = 0,
+//     // BOUNCE_FREQ_MAX = 65535,
+//     BOUNCE_FREQ_MAX = 80000,
+//     BOUNCE_DURATION_MIN = 0,
+//     // BOUNCE_DURATION_MAX = 4095,
+//     BOUNCE_DURATION_MAX = 255,
   };
 
   struct spark {
@@ -146,7 +146,7 @@ class Sparkler {
     float volume;
   };
 
-  float scale_i2f(int i) { return (float)i / 65535.0f; }
+  // float scale_i2f(int i) { return (float)i / 65535.0f; }
 
 public:
   Sparkler(uint32_t pixel_count)
@@ -154,25 +154,25 @@ public:
     spark_count(0),
     color_index(0)
   {
-    launch_freq_map.center_x = LAUNCH_CENTER;
-    launch_freq_map.slope_x = LAUNCH_SLOPE;
-    launch_freq_map.min_y = scale_i2f(LAUNCH_FREQ_MIN);
-    launch_freq_map.max_y = scale_i2f(LAUNCH_FREQ_MAX);
+    // launch_freq_map.center_x = LAUNCH_CENTER;
+    // launch_freq_map.slope_x = LAUNCH_SLOPE;
+    // launch_freq_map.min_y = scale_i2f(LAUNCH_FREQ_MIN);
+    // launch_freq_map.max_y = scale_i2f(LAUNCH_FREQ_MAX);
 
-    launch_duration_map.center_x = LAUNCH_CENTER;
-    launch_duration_map.slope_x = -LAUNCH_SLOPE;
-    launch_duration_map.min_y = scale_i2f(LAUNCH_DURATION_MIN);
-    launch_duration_map.max_y = scale_i2f(LAUNCH_DURATION_MAX);
+    // launch_duration_map.center_x = LAUNCH_CENTER;
+    // launch_duration_map.slope_x = -LAUNCH_SLOPE;
+    // launch_duration_map.min_y = scale_i2f(LAUNCH_DURATION_MIN);
+    // launch_duration_map.max_y = scale_i2f(LAUNCH_DURATION_MAX);
 
-    bounce_freq_map.center_x = BOUNCE_CENTER;
-    bounce_freq_map.slope_x = BOUNCE_SLOPE;
-    bounce_freq_map.min_y = scale_i2f(BOUNCE_FREQ_MIN);
-    bounce_freq_map.max_y = scale_i2f(BOUNCE_FREQ_MAX);
+    // bounce_freq_map.center_x = BOUNCE_CENTER;
+    // bounce_freq_map.slope_x = BOUNCE_SLOPE;
+    // bounce_freq_map.min_y = scale_i2f(BOUNCE_FREQ_MIN);
+    // bounce_freq_map.max_y = scale_i2f(BOUNCE_FREQ_MAX);
 
-    bounce_duration_map.center_x = BOUNCE_CENTER;
-    bounce_duration_map.slope_x = -BOUNCE_SLOPE;
-    bounce_duration_map.min_y = scale_i2f(BOUNCE_DURATION_MIN);
-    bounce_duration_map.max_y = scale_i2f(BOUNCE_DURATION_MAX);
+    // bounce_duration_map.center_x = BOUNCE_CENTER;
+    // bounce_duration_map.slope_x = -BOUNCE_SLOPE;
+    // bounce_duration_map.min_y = scale_i2f(BOUNCE_DURATION_MIN);
+    // bounce_duration_map.max_y = scale_i2f(BOUNCE_DURATION_MAX);
   }
 
   bool is_idle() const { return spark_count == 0; }
@@ -190,9 +190,10 @@ public:
       sp->volume = has_sound ? 1.0 : 0.0;
     }
     if (has_sound) {
-      float freq = launch_freq_map.map(vel);
-      float dur = launch_duration_map.map(vel);
-      AudioManager::trigger_launch(freq, dur);
+      // float freq = launch_freq_map.map(vel);
+      // float dur = launch_duration_map.map(vel);
+      // AudioManager::trigger_launchXXX(freq, dur);
+      AudioManager::trigger_launch(vel);
     }
   }
 
@@ -239,9 +240,10 @@ public:
         bounced = true;
         if (sp->volume) {
           sp->volume /= 1.3;
-          float freq = bounce_freq_map.map(-sp->vel);
-          float dur = bounce_duration_map.map(-sp->vel);
-          AudioManager::trigger_bottom_bounce(sp->volume, freq, dur);
+          // float freq = bounce_freq_map.map(-sp->vel);
+          // float dur = bounce_duration_map.map(-sp->vel);
+          // AudioManager::trigger_bottom_bounceXXX(sp->volume, freq, dur);
+          AudioManager::trigger_bottom_bounce(sp->volume, -sp->vel);
         }
       } else if (new_pos >= pixel_count << 16) {
         // Bounce off the high end
@@ -249,9 +251,10 @@ public:
         bounced = true;
         if (sp->volume) {
           sp->volume /= 1.3;
-          float freq = bounce_freq_map.map(sp->vel);
-          float dur = bounce_duration_map.map(sp->vel);
-          AudioManager::trigger_top_bounce(sp->volume, freq, dur);
+          // float freq = bounce_freq_map.map(sp->vel);
+          // float dur = bounce_duration_map.map(sp->vel);
+          // AudioManager::trigger_top_bounceXXX(sp->volume, freq, dur);
+          AudioManager::trigger_top_bounce(sp->volume, sp->vel);
         }
       }
       if (bounced) {
@@ -294,10 +297,10 @@ private:
   uint32_t pixel_count;
   size_t spark_count;
   uint32_t color_index;
-  Sigmap launch_freq_map;
-  Sigmap launch_duration_map;
-  Sigmap bounce_freq_map;
-  Sigmap bounce_duration_map;
+  // Sigmap launch_freq_map;
+  // Sigmap launch_duration_map;
+  // Sigmap bounce_freq_map;
+  // Sigmap bounce_duration_map;
   spark sparks[MAX_SPARKS];
 };
 
@@ -354,6 +357,8 @@ public:
     button.attach(BUTTON_PIN, INPUT_PULLUP);
     button.interval(BUTTON_INTERVAL_MSEC);
     button.setPressedState(LOW);
+    button.update();
+    (void) button.changed(); // Ignore the first one.
 
     pinMode(BUTTON_LED_PIN, OUTPUT);
     digitalWrite(BUTTON_LED_PIN, LOW);
@@ -379,9 +384,9 @@ public:
 
 void setup() {
 
-  Trace::tracef("begin setup");
+  // Trace::tracef("begin setup");
   Serial.begin(9600);
-  // while (!Serial) continue;
+  // while (!Serial) continue; // XXX
   // Trace::tracef("serial is up");
 
   ButtonManager::setup();
@@ -390,11 +395,11 @@ void setup() {
 }
 
 void loop() {
-  static bool printed;
-  if (!printed && millis() >= 3000) {
-    Trace::print_all();
-    printed = true;
-  }
+  // static bool printed;
+  // if (!printed && millis() >= 3000) {
+  //   Trace::print_all();
+  //   printed = true;
+  // }
 
   ButtonManager::loop();
   LEDManager::loop();

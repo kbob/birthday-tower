@@ -6,6 +6,7 @@
 #include "AudioSynthMutableFMDrum.h"
 #include "AudioEffectMutableReverb.h"
 #include "CommandProcessor.h"
+#include "Sigmap.h"
 #include "StreamReader.h"
 
 // GUItool: begin automatically generated code
@@ -64,41 +65,60 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=706,445
 // GUItool: end automatically generated code
 
 static const Parameter manager_params[] = {
-  { "launch.center",       40000, 120000,  40000 },
-  { "launch.slope",            0,    100,     50, "percent" },
-  { "launch.min_freq",    -32768, +32767, -32768 },
-  { "launch.max_freq",    -32767, +99999, +32767 },
-  { "launch.min_duration",     0,  65535,  16384 },
-  { "launch.max_duration",     0,  65535,  65535 },
+  // N.B., launch frequency is (signed) int16_t, but
+  // bounce frequency is unsigned uint16_t.
+  // Also, both launch and bounce duration min > max by default.
+  // Faster particles trigger longer sounds.  I dunno why.
+  { "launch.center_velocity", 40000, 120000,  40000 },
+  { "launch.slope",               0,    100,     50, "percent" },
+  { "launch.min_freq",       -32768, +32767, -32768 },
+  { "launch.max_freq",       -32767, +99999, +32767 },
+  { "launch.min_duration",        0,  65535,  65535 },
+  { "launch.max_duration",        0,  65535,  16384 },
 
-  { "bounce.center",       40000, 120000,  65000 },
-  { "bounce.slope",            0,    100,     50, "percent" },
-  { "bounce.min_freq",    -32768, +32767, +80000 },
-  { "bounce.max_freq",    -32768, +99999, +80000 },
-  { "bounce.min_duration",     0,  65535,      0 },
-  { "bounce.max_duration",     0,  65535,    255 },
+  { "bounce.center_velocity", 40000, 120000,  65000 },
+  { "bounce.slope",               0,    100,     50, "percent" },
+  { "bounce.min_freq",       -32768, +32767,      0 },
+  { "bounce.max_freq",       -32768, +99999, +80000 },
+  { "bounce.min_duration",        0,  65535,    255 },
+  { "bounce.max_duration",        0,  65535,      0 },
 
-  { "mix.launch",              0,    100,     70, "percent" },
-  { "mix.bounce",              0,    100,     40, "percent" },
-  { "mix.volume",              0,    100,     50, "percent" },
+  { "mix.launch",                 0,    100,     70, "percent" },
+  { "mix.bounce",                 0,    100,     40, "percent" },
+  { "mix.volume",                 0,    100,     50, "percent" },
 
-  { "delay.time",              1,    250,     90, "msec"    },
-  { "delay.cadence",          10,     90,     45, "percent" },
-  { "delay.echo",              0,    100,     70, "percent" },
+  { "delay.time",                 1,    250,     90, "msec"    },
+  { "delay.cadence",             10,     90,     45, "percent" },
+  { "delay.echo",                 0,    100,     70, "percent" },
 
-  { "reverb.time",             0,    100,     20, "percent" },
-  { "reverb.amount",           0,    100,     15, "percent" },
+  { "reverb.time",                0,    100,     20, "percent" },
+  { "reverb.amount",              0,    100,     15, "percent" },
 
-  { "bass.punch",              0,  65535,   4000 },
-  { "bass.tone",               0,  65535,  32767 },
+  { "bass.punch",                 0,  65535,   4000 },
+  { "bass.tone",                  0,  65535,  32767 },
 
-  { "FM_drums.noise",          0,  65535,  15000 },
-  { "FM_drums.FM_amount",      0,  65535,  32767 },
+  { "FM_drums.noise",             0,  65535,  15000 },
+  { "FM_drums.FM_amount",         0,  65535,  32767 },
 };
 static const size_t manager_param_count =
   (&manager_params)[1] - manager_params;
 static Parameter::value_type param_values[manager_param_count];
 
+// These Sigmaps define the mapping from velocity (see comment
+// in AudioManager.h) to drum frequency and duration (decay).
+// The mapping is a sigmoid function; it asymptotically approaches
+// its min and max values.  The values are also hard clipped
+// to [0..65535] in the AudioManger::trigger_* methods.
+
+// SLOPE_MAGIC gives a reasonable range of slopes for teh sigmoid
+// functions.  It was chosen through trial and error.
+// Higher slope makes frequency/duration more sensitive to button duration.
+
+const float SLOPE_MAGIC = 3.5e-7;
+Sigmap launch_freq_map;
+Sigmap launch_duration_map;
+Sigmap bounce_freq_map;
+Sigmap bounce_duration_map;
 
 class AudioManParameters : public Parameterized {
 
@@ -106,14 +126,18 @@ public:
   AudioManParameters()
   : Parameterized(manager_params, param_values, manager_param_count),
     enabled(false),
-    delay_time_index(parameter_index("decay.time")),
-    delay_cadence_index(parameter_index("decay.cadence"))
+    delay_time_index(parameter_index("delay.time")),
+    delay_cadence_index(parameter_index("delay.cadence"))
   {
 
   }
 
   void enable(bool on_off) {
     enabled = on_off;
+  }
+
+  void init() {
+    Parameterized::init();
   }
 
   virtual void
@@ -124,30 +148,36 @@ public:
     if (!enabled) {
       return;
     }    
-    if (!strcmp(group_member, "launch.center")) {
-
+    if (!strcmp(group_member, "launch.center_velocity")) {
+      launch_freq_map.center_x = new_value;
+      launch_duration_map.center_x = new_value;
     } else if (!strcmp(group_member, "launch.slope")) {
-
+      float slope = new_value * SLOPE_MAGIC;
+      launch_freq_map.slope_x = slope;
+      launch_duration_map.slope_x = slope;
     } else if (!strcmp(group_member, "launch.min_freq")) {
-
+      launch_freq_map.min_y = new_value;
     } else if (!strcmp(group_member, "launch.max_freq")) {
-
+      launch_freq_map.max_y = new_value;
     } else if (!strcmp(group_member, "launch.min_duration")) {
-
+      launch_duration_map.min_y = new_value;
     } else if (!strcmp(group_member, "launch.max_duration")) {
-
-    } else if (!strcmp(group_member, "bounce.center")) {
-
+      launch_duration_map.max_y = new_value;
+    } else if (!strcmp(group_member, "bounce.center_velocity")) {
+      bounce_freq_map.center_x = new_value;
+      bounce_duration_map.center_x = new_value;
     } else if (!strcmp(group_member, "bounce.slope")) {
-
+      float slope = new_value * SLOPE_MAGIC;
+      bounce_freq_map.slope_x = slope;
+      bounce_duration_map.slope_x = slope;
     } else if (!strcmp(group_member, "bounce.min_freq")) {
-
+      bounce_freq_map.min_y = new_value;
     } else if (!strcmp(group_member, "bounce.max_freq")) {
-
+      bounce_freq_map.max_y = new_value;
     } else if (!strcmp(group_member, "bounce.min_duration")) {
-
+      bounce_duration_map.min_y = new_value;
     } else if (!strcmp(group_member, "bounce.max_duration")) {
-
+      bounce_duration_map.max_y = new_value;
     } else if (!strcmp(group_member, "mix.launch")) {
       mixer4.gain(2, new_value / 100.0f);
     } else if (!strcmp(group_member, "mix.bounce")) {
@@ -158,9 +188,9 @@ public:
       sgtl5000_1.volume(new_value / 100.0f);
       sgtl5000_1.lineOutLevel(line_level);
     } else if (!strcmp(group_member, "delay.time")) {
-      update_delay(new_value, get(delay_cadence_index));
+      update_delay();
     } else if (!strcmp(group_member, "delay.cadence")) {
-      update_delay(get(delay_time_index), new_value);
+      update_delay();
     } else if (!strcmp(group_member, "delay.echo")) {
       float echo = new_value / 100.0f;
       mixer3.gain(1, echo);
@@ -198,7 +228,7 @@ private:
   bool enabled;
   size_t delay_time_index, delay_cadence_index;
 
-  void update_delay(int itime, int icadence) {
+  void update_delay() {
     // Cadence adds "swing" to the delay.  50% is regular ping pong.
     // 0% means all the delay is from bottom to top; 100% is the opposite.
     //    top delay = 2 * time * cadence;
@@ -206,7 +236,7 @@ private:
     // Will it sound interesting?  I don't know.
 
     float time_msec = get(delay_time_index);
-    float cadence = get(delay_cadence_index) / 100;
+    float cadence = get(delay_cadence_index) / 100.0f;
     float top_delay = 2.0f * time_msec * cadence;
     float bottom_delay = 2.0f * time_msec * (1.0f - cadence);
     delay1.delay(0, top_delay);
@@ -215,7 +245,7 @@ private:
 };
 static AudioManParameters audio_params;
 
-static float sgtl_volume;
+// static float sgtl_volume;
 static size_t top_rotor, bottom_rotor;
 static AudioSynthMutableFMDrum *top_drums[] = {
   &top1, &top2, &top3, &top4
@@ -225,9 +255,10 @@ static AudioSynthMutableFMDrum *bottom_drums[] = {
 };
 static size_t top_count = 4, bottom_count = 4;
 
-static float scale_f2i(float f) {
-  return max(0, min(65535, (int)(65535.0f * f)));
-}
+// // XXX deprecate me?
+// static int scale_f2i(float f) {
+//   return max(0, min(65535, (int)(65535.0f * f)));
+// }
 
 #if defined(USB_DUAL_SERIAL) || defined(USB_TRIPLE_SERIAL)
 
@@ -244,42 +275,88 @@ static float scale_f2i(float f) {
 
 #endif
 
-void AudioManager::trigger_launch(float frequency, float duration) {
-  launch1.setFrequency(scale_f2i(frequency));
-  launch1.setDecay(scale_f2i(duration));
+void AudioManager::trigger_launch(int velocity) {
+  int freq = launch_freq_map.map(velocity);
+  // N.B., bass drum freq is signed.
+  freq = max(-32768, min(+32767, freq));
+  int dur = launch_duration_map.map(velocity);
+  dur = max(0, min(65535, dur));
+  launch1.setFrequency(freq);
+  launch1.setDecay(dur);
   launch1.noteOn();
+  auto *p = &launch_freq_map;
+  Serial.printf("trig_lch: freq_map = {center=%g slope=%g min=%g max=%g}\n",
+                p->center_x, p->slope_x, p->min_y, p->max_y);
+  Serial.printf("          vel=%d freq=%d\n", velocity, freq);
+  p = &launch_duration_map;
+  Serial.printf("trig_lch: dur_map = {center=%g slope=%g min=%g max=%g}\n",
+                p->center_x, p->slope_x, p->min_y, p->max_y);
+  Serial.printf("          vel=%d dur=%d\n", velocity, dur);
+  Serial.printf("\n");
 }
 
-void
-AudioManager::trigger_top_bounce(float volume,
-                                 float frequency,
-                                 float duration) {
+void AudioManager::trigger_top_bounce(float volume, int velocity) {
+  int freq = bounce_freq_map.map(velocity);
+  freq = max(0, min(65535, freq));
+  int dur = bounce_duration_map.map(velocity);
+  dur = max(0, min(65535, dur));
   auto *drum = top_drums[top_rotor];
   mixer1.gain(top_rotor, volume);
-  drum->setFrequency(scale_f2i(frequency));
-  drum->setDecay(scale_f2i(duration));
+  drum->setFrequency(freq);
+  drum->setDecay(dur);
   drum->noteOn();
   top_rotor = (top_rotor + 1) % top_count;
 }
 
-void
-AudioManager::trigger_bottom_bounce(float volume,
-                                    float frequency,
-                                    float duration) {
+void AudioManager::trigger_bottom_bounce(float volume, int velocity) {
+  int freq = bounce_freq_map.map(velocity);
+  freq = max(0, min(65535, freq));
+  int dur = bounce_duration_map.map(velocity);
+  dur = max(0, min(65535, dur));
   auto *drum = bottom_drums[bottom_rotor];
-  mixer2.gain(bottom_rotor, volume);
-  drum->setFrequency(scale_f2i(frequency));
-  drum->setDecay(scale_f2i(duration));
+  mixer1.gain(bottom_rotor, volume);
+  drum->setFrequency(freq);
+  drum->setDecay(dur);
   drum->noteOn();
   bottom_rotor = (bottom_rotor + 1) % bottom_count;
 }
 
-void AudioManager::setup() {
-  AudioMemory(120);
+// void AudioManager::trigger_launchXXX(float frequency, float duration) {
+//   launch1.setFrequency(scale_f2i(frequency));
+//   launch1.setDecay(scale_f2i(duration));
+//   launch1.noteOn();
+// }
 
-  sgtl_volume = 0.0;
+// void
+// AudioManager::trigger_top_bounceXXX(float volume,
+//                                  float frequency,
+//                                  float duration) {
+//   auto *drum = top_drums[top_rotor];
+//   mixer1.gain(top_rotor, volume);
+//   drum->setFrequency(scale_f2i(frequency));
+//   drum->setDecay(scale_f2i(duration));
+//   drum->noteOn();
+//   top_rotor = (top_rotor + 1) % top_count;
+// }
+
+// void
+// AudioManager::trigger_bottom_bounceXXX(float volume,
+//                                     float frequency,
+//                                     float duration) {
+//   auto *drum = bottom_drums[bottom_rotor];
+//   mixer2.gain(bottom_rotor, volume);
+//   drum->setFrequency(scale_f2i(frequency));
+//   drum->setDecay(scale_f2i(duration));
+//   drum->noteOn();
+//   bottom_rotor = (bottom_rotor + 1) % bottom_count;
+// }
+
+void AudioManager::setup() {
+  AudioMemory(250);
+
+  // sgtl_volume = 0.0;
   sgtl5000_1.enable();
-  sgtl5000_1.volume(0.0);  // ramp up later.
+  sgtl5000_1.volume(0.5);
 
   // top1.setFrequency(32768);
   // top1.setFMAmount(32768);
@@ -350,33 +427,35 @@ void AudioManager::setup() {
   reverb1.amount(0.15);
   reverb1.time(0.2);
 
+  audio_params.enable(true);
+  audio_params.init();
+
 #ifdef PROCESS_COMMANDS
   COMMAND_STREAM.begin(9600);
   command_processor.attach(audio_params);
-  audio_params.enable(true);
 #endif
 }
 
 void AudioManager::loop() {
-  if (sgtl_volume < 0.5) {
-    static uint32_t prev_adjust;
-    uint32_t now = millis();
-    if (prev_adjust < now) {
-      prev_adjust = now;
-      sgtl_volume += 0.001;
-      if (sgtl_volume > 0.5)
-        sgtl_volume = 0.5;
-      sgtl5000_1.volume(sgtl_volume);
-    }
-  }
+  // if (sgtl_volume < 0.5) {
+  //   static uint32_t prev_adjust;
+  //   uint32_t now = millis();
+  //   if (prev_adjust < now) {
+  //     prev_adjust = now;
+  //     sgtl_volume += 0.001;
+  //     if (sgtl_volume > 0.5)
+  //       sgtl_volume = 0.5;
+  //     sgtl5000_1.volume(sgtl_volume);
+  //   }
+  // }
 
-  static uint32_t print_time;
-  uint32_t now = millis();
-  if (now - print_time > 1000) {
-    // Serial.printf("Audio Memory: %d, max %d\n",
-    //               AudioMemoryUsage(), AudioMemoryUsageMax());
-    print_time += 1000;
-  }
+  // static uint32_t print_time;
+  // uint32_t now = millis();
+  // if (now - print_time > 1000) {
+  //   Serial.printf("Audio Memory: %d, max %d\n",
+  //                 AudioMemoryUsage(), AudioMemoryUsageMax());
+  //   print_time += 1000;
+  // }
 
 #ifdef PROCESS_COMMANDS
   if (command_reader.collect_input()) {
