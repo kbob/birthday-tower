@@ -2,6 +2,7 @@
 
 #include "bass_drum.h"
 
+// N.B., these parameters are deprecated.
 static Parameter bass_params[] = {
   { "bass.frequency", -32768, +32767,      0, "" },
   { "bass.punch",          0,  65535,  65535, "" },

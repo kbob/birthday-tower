@@ -1,1 +1,6 @@
 .DS_Store
+*.d
+*.o
+*.ino.cpp
+**/pch/Arduino.h
+**/pch/Arduino.h.pch

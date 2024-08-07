@@ -3,8 +3,6 @@
 #ifndef PARAMETERIZED_included
 #define PARAMETERIZED_included
 
-#include "Trace.h"    // XXX
-
 struct Parameter {
   typedef int value_type;
 
@@ -19,11 +17,15 @@ class Parameterized {
 
 public:
 
+  typedef long index_option_type; // in a just world, this would be ssize_t.
+
   virtual ~Parameterized();
 
   virtual size_t parameter_count() const;
   virtual const Parameter *describe(size_t index) const;
+  virtual index_option_type parameter_index(const char *group_member) const;
   virtual Parameter::value_type get(const char *group_member) const;
+  virtual Parameter::value_type get(size_t index) const;
   virtual void 
   set(const char *group_member, Parameter::value_type new_value) = 0;
 

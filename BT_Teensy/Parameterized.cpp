@@ -15,16 +15,28 @@ const Parameter *Parameterized::describe(size_t index) const {
   return &params[index];
 }
 
-Parameter::value_type Parameterized::get(const char *group_member) const {
+Parameterized::index_option_type
+Parameterized::parameter_index(const char *group_member) const {
   for (size_t i = 0; i < count; i++) {
     if (!strcmp(group_member, params[i].group_member)) {
-      return values[i];
+      return i;
     }
   }
   return -1;
 }
 
-#include <Arduino.h>
+Parameter::value_type Parameterized::get(const char *group_member) const {
+  index_option_type index = parameter_index(group_member);
+  if (index < 0) {
+    return -1;
+  } else {
+    return values[index];
+  }
+}
+
+Parameter::value_type Parameterized::get(size_t index) const {
+  return values[index];
+}
 
 void Parameterized::init()
 {
@@ -38,15 +50,14 @@ Parameterized::save_value(
   const char *group_member,
   Parameter::value_type new_value)
 {
-  for (size_t i = 0; i < count; i++) {
-    const Parameter *p = &params[i];
-    if (!strcmp(group_member, p->group_member)) {
-      if (new_value < p->min || new_value > p->max) {
-        return false;
-      }
-      values[i] = new_value;
-      return true;
-    }
+  index_option_type index = parameter_index(group_member);
+  if (index < 0) {
+    return false;
   }
-  return false;
+  const Parameter *p = &params[index];
+  if (new_value < p->min || new_value > p->max) {
+    return false;
+  }
+  values[index] = new_value;
+  return true;
 }

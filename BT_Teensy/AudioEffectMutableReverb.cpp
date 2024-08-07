@@ -3,6 +3,8 @@
 #define F2V(f) ((Parameter::value_type)((f) * REVERB_SCALE_RESOLUTION))
 #define V2F(v) ((float)(v) / (float)REVERB_SCALE_RESOLUTION)
 
+// N.B., these parameters are deprecated.
+// Some of them are still used as default values.
 static const Parameter reverb_params[] = {
   { "reverb.input_gain", 0, REVERB_SCALE_RESOLUTION, F2V(0.25),  "" },
   { "reverb.time",       0, REVERB_SCALE_RESOLUTION, F2V(1.0),   "" },

@@ -1,0 +1,69 @@
+#!/bin/sh -e
+
+ARDUINO_ROOT="$HOME/Library/Arduino15"
+TEENSY_ROOT="$ARDUINO_ROOT/packages/teensy"
+TEENSY_TOOLROOT="$TEENSY_ROOT/tools"
+TEENSY_SRCROOT="$TEENSY_ROOT/hardware/avr/1.59.0"
+
+
+mkdir -p pch
+[ -h BT_Teensy.ino.cpp ] || ln -s ../BT_Teensy.ino BT_Teensy.ino.cpp
+[ -a Arduino.h ] || cp $TEENSY_SRCROOT/cores/teensy4/Arduino.h pch/Arduino.h
+
+
+
+
+
+
+CXX="$TEENSY_TOOLROOT/teensy-compile/11.3.1/arm/bin/arm-none-eabi-g++"
+CXXOPTS="-O2 -g -Wall -ffunction-sections -fdata-sections -nostdlib -MMD -std=gnu++17 \
+        -fno-exceptions -fpermissive -fno-rtti -fno-threadsafe-statics -felide-constructors \
+        -Wno-error=narrowing -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-d16"
+CXXOPTS="$CXXOPTS -fdiagnostics-color=always"
+CXXDEFS="-D__IMXRT1062__ -DTEENSYDUINO=159 -DARDUINO=10607 -DARDUINO_TEENSY40 -DF_CPU=600000000 -DUSB_DUAL_SERIAL -DLAYOUT_US_ENGLISH"
+CXXINCS="-I.. \
+         -Ipch \
+         -I$TEENSY_SRCROOT/cores/teensy4 \
+         -I$TEENSY_SRCROOT/libraries/Bounce2/src \
+         -I$TEENSY_SRCROOT/libraries/WS2812Serial \
+         -I$TEENSY_SRCROOT/libraries/Audio \
+         -I$TEENSY_SRCROOT/libraries/SPI \
+         -I$TEENSY_SRCROOT/libraries/SD/src \
+         -I$TEENSY_SRCROOT/libraries/SdFat/src \
+         -I$TEENSY_SRCROOT/libraries/SerialFlash \
+         -I$TEENSY_SRCROOT/libraries/Wire"
+CXXFLAGS="$CXXOPTS $CXXDEFS $CXXINCS"
+
+
+
+"$TEENSY_TOOLROOT/teensy-tools/1.59.0/precompile_helper" \
+        "$TEENSY_SRCROOT/cores/teensy4" \
+        . \
+        $CXX \
+                -x c++-header \
+                $CXXOPTS \
+                -D__IMXRT1062__ -DTEENSYDUINO=159 -DARDUINO=10607 -DARDUINO_TEENSY40 -DF_CPU=600000000 -DUSB_DUAL_SERIAL -DLAYOUT_US_ENGLISH \
+                -I$TEENSY_SRCROOT/cores/teensy4 \
+            pch/Arduino.h \
+            -o pch/Arduino.h.pch
+
+
+
+
+$CXX -c $CXXFLAGS BT_Teensy.ino.cpp -o BT_Teensy.ino.cpp.o
+
+$CXX -c $CXXFLAGS ../AudioEffectMutableReverb.cpp
+$CXX -c $CXXFLAGS ../AudioManager.cpp
+$CXX -c $CXXFLAGS ../AudioSynthMutableBassDrum.cpp
+$CXX -c $CXXFLAGS ../AudioSynthMutableFMDrum.cpp
+$CXX -c $CXXFLAGS ../CommandProcessor.cpp
+$CXX -c $CXXFLAGS ../GoldenColors.cpp
+$CXX -c $CXXFLAGS ../Parameterized.cpp
+$CXX -c $CXXFLAGS ../Trace.cpp
+$CXX -c $CXXFLAGS ../bass_drum.cc
+$CXX -c $CXXFLAGS ../fm_drum.cc
+$CXX -c $CXXFLAGS ../random.cc
+$CXX -c $CXXFLAGS ../resources.cc
+
+echo OK
+

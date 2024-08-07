@@ -2,11 +2,12 @@
 
 #include "fm_drum.h"
 
+// N.B., these parameters are deprecated.
 static Parameter fm_drum_params[] = {
   { "fm_drum.frequency",      0,  65535,  32768, "" },
   { "fm_drum.fm_amount",      0,  65535,  32768, "" },
   { "fm_drum.decay",          0,  65535,  32768, "" },
-  { "fm_drum.noise",          0,  65535,  32768, "" },
+  { "fm_drum.noise",          0,  65535,  15000, "" },
 };
 static const size_t fm_drum_param_count = (&fm_drum_params)[1] - fm_drum_params;
 static Parameter::value_type fm_drum_param_values[fm_drum_param_count];

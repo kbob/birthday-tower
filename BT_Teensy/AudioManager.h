@@ -4,8 +4,6 @@
 class AudioManager {
 
 public:
-  AudioManager();
-
   // volume, frequency, and duration are [0..1].
   static void
   trigger_launch(float frequency, float duration);

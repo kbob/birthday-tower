@@ -192,8 +192,6 @@ public:
     if (has_sound) {
       float freq = launch_freq_map.map(vel);
       float dur = launch_duration_map.map(vel);
-      Serial.printf("duration = %d, velocity = %d, freq = %g, dur = %g\n",
-                    msec, vel, freq, dur);
       AudioManager::trigger_launch(freq, dur);
     }
   }
@@ -243,8 +241,6 @@ public:
           sp->volume /= 1.3;
           float freq = bounce_freq_map.map(-sp->vel);
           float dur = bounce_duration_map.map(-sp->vel);
-          Serial.printf("top: vel = %d, freq = %g, dur = %g\n",
-                        -sp->vel, freq, dur);
           AudioManager::trigger_bottom_bounce(sp->volume, freq, dur);
         }
       } else if (new_pos >= pixel_count << 16) {
@@ -255,8 +251,6 @@ public:
           sp->volume /= 1.3;
           float freq = bounce_freq_map.map(sp->vel);
           float dur = bounce_duration_map.map(sp->vel);
-          Serial.printf("bottom: vel = %d, freq = %g, dur = %g\n",
-                        sp->vel, freq, dur);
           AudioManager::trigger_top_bounce(sp->volume, freq, dur);
         }
       }
@@ -387,8 +381,8 @@ void setup() {
 
   Trace::tracef("begin setup");
   Serial.begin(9600);
-  while (!Serial) continue;
-  Trace::tracef("serial is up");
+  // while (!Serial) continue;
+  // Trace::tracef("serial is up");
 
   ButtonManager::setup();
   LEDManager::setup();
