@@ -184,7 +184,21 @@ public:
       mixer3.gain(0, new_value / 100.0f);
       mixer4.gain(0, new_value / 100.0f);
     } else if (!strcmp(group_member, "mix.volume")) {
-      int line_level = map(new_value, 0, 100, 31, 13);
+
+      // SGTL5000 volume is weird.  Headphone volume is a nice linear
+      // thing from 0 to 1.  But the line out volume goes from 13 = 3.12v
+      // to 31 = 1.16v, with 29 = 1.29v as the default.
+      //
+      // We'll make the best of the situation by mapping volumes 0..0.4375
+      // to 31 = 1.16v, and linearly mapping [0.4375..1.0] to [31..13].
+      // That maps 0.5 (the default) to 16 = 1.29v (the default).
+
+      int line_level;
+      if (new_value <= 43) {
+        line_level = 31;
+      } else {
+        line_level = 31 + map(new_value * 100, 4375, 10000, 31, 13);
+      }
       sgtl5000_1.volume(new_value / 100.0f);
       sgtl5000_1.lineOutLevel(line_level);
     } else if (!strcmp(group_member, "delay.time")) {
