@@ -83,6 +83,12 @@ static const Parameter manager_params[] = {
   { "bounce.min_duration",        0,  65535,    255 },
   { "bounce.max_duration",        0,  65535,      0 },
 
+  { "bass.punch",                 0,  65535,   4000 },
+  { "bass.tone",                  0,  65535,  32767 },
+
+  { "FM_drums.noise",             0,  65535,  15000 },
+  { "FM_drums.FM_amount",         0,  65535,  32767 },
+
   { "mix.launch",                 0,    100,     30, "percent" },
   { "mix.bounce",                 0,    100,     50, "percent" },
   { "mix.volume",                 0,    100,     50, "percent" },
@@ -93,12 +99,6 @@ static const Parameter manager_params[] = {
 
   { "reverb.time",                0,    100,     20, "percent" },
   { "reverb.amount",              0,    100,     15, "percent" },
-
-  { "bass.punch",                 0,  65535,   4000 },
-  { "bass.tone",                  0,  65535,  32767 },
-
-  { "FM_drums.noise",             0,  65535,  15000 },
-  { "FM_drums.FM_amount",         0,  65535,  32767 },
 };
 static const size_t manager_param_count =
   (&manager_params)[1] - manager_params;
