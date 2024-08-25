@@ -101,6 +101,8 @@ class Sparkler {
   enum {
     MAX_SPARKS = 200,
     MAX_VEL = 100 * 65536,    // steps/tick * 2**16 for a 1 msec pulse
+    CONTRAIL_LENGTH = 5,      // length of a max velocity spark's contrail
+    CONTRAIL_MIN = 5,         // brightness of a contrail's trailing pixel
     SPARKBURST_MIN = 5,
     SPARKBURST_MAX = 30,
     SPARKBURST_SLOWEST = 200, // msec button duration
@@ -112,6 +114,8 @@ class Sparkler {
     int32_t vel;              // fixed point 16.16 signed
     uint32_t color;
     float volume;
+    uint32_t contrail_pixels;
+    float contrail_decay;
   };
 
 public:
@@ -128,12 +132,18 @@ public:
     uint32_t pos = 0;
     int32_t vel = MAX_VEL / msec;
     uint32_t color = golden_color_RGB(color_index++, 65535, 65535);
+    uint32_t contrail_pixels = CONTRAIL_LENGTH * vel / 65536 + 1;
+    float contrail_decay = powf(CONTRAIL_MIN / 255.0f, 1.0f / (contrail_pixels - 1));
+    // Serial.printf("contrail pixels = %d, decay = %g\n", contrail_pixels, contrail_decay);
+
     if (spark_count < MAX_SPARKS) {
       spark *sp = &sparks[spark_count++];
       sp->pos = pos;
       sp->vel = vel;
       sp->color = color;
       sp->volume = has_sound ? 1.0 : 0.0;
+      sp->contrail_pixels = contrail_pixels;
+      sp->contrail_decay = contrail_decay;
     }
     if (has_sound) {
       AudioManager::trigger_launch(vel);
@@ -147,17 +157,12 @@ public:
       uint32_t index = sp->pos >> 16;
       uint32_t c0 = sp->color;
       uint8_t r0 = c0 >> 16 & 0xFF, g0 = c0 >> 8 & 0xFF, b0 = c0 >> 0 & 0xFF;
-      // If velocity is more than one pixel/tick, leave a contrail behind it.
-      int abs_v, dir;
-      if (sp->vel > 0) {
-        abs_v = sp->vel;
-        dir = -1;
-      } else {
-        abs_v = -sp->vel;
-        dir = +1;
-      }
-      int n_pix = (abs_v + 65535) / 65536;
-      for (int j = 0; j < n_pix; j++) {
+
+      // Leave a fading contrail behind each spark.
+      int dir = sp->vel > 0 ? +1 : -1;
+      int n_pix = sp->contrail_pixels;
+      float decay = sp->contrail_decay;
+      for (int j = 0; j < n_pix; j++) {  // N.B. j must be signed
         int j_index = index + dir * j;
         if (j_index < 0 || (uint32_t)j_index >= pixel_count)
           break;
@@ -166,7 +171,7 @@ public:
         uint8_t g = min(255u, g0 + (c1 >>  8 & 0xFF));
         uint8_t b = min(255u, b0 + (c1 >>  0 & 0xFF));
         set_pixel_color(j_index, (r << 16 | g << 8 | b << 0));
-        r /= 4; g /= 4; b /= 4;
+        r0 *= decay; g0 *= decay; b0 *= decay;
       }
     }
   }

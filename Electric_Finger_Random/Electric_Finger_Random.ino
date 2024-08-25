@@ -31,7 +31,7 @@ unsigned long collect_entropy() {
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial) continue;
+  // while (!Serial) continue;
 
   unsigned long seed = collect_entropy();
   randomSeed(seed);
