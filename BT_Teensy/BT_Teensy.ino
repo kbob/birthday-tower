@@ -101,7 +101,7 @@ class Sparkler {
   enum {
     MAX_SPARKS = 200,
     MAX_VEL = 100 * 65536,    // steps/tick * 2**16 for a 1 msec pulse
-    CONTRAIL_LENGTH = 5,      // length of a max velocity spark's contrail
+    CONTRAIL_LENGTH = 8,      // length of a 1 step/tick spark's contrail
     CONTRAIL_MIN = 5,         // brightness of a contrail's trailing pixel
     SPARKBURST_MIN = 5,
     SPARKBURST_MAX = 30,
@@ -132,7 +132,7 @@ public:
     uint32_t pos = 0;
     int32_t vel = MAX_VEL / msec;
     uint32_t color = golden_color_RGB(color_index++, 65535, 65535);
-    uint32_t contrail_pixels = CONTRAIL_LENGTH * vel / 65536 + 1;
+    uint32_t contrail_pixels = max(1, CONTRAIL_LENGTH * vel / 65536);
     float contrail_decay = powf(CONTRAIL_MIN / 255.0f, 1.0f / (contrail_pixels - 1));
     // Serial.printf("contrail pixels = %d, decay = %g\n", contrail_pixels, contrail_decay);
 
@@ -159,7 +159,7 @@ public:
       uint8_t r0 = c0 >> 16 & 0xFF, g0 = c0 >> 8 & 0xFF, b0 = c0 >> 0 & 0xFF;
 
       // Leave a fading contrail behind each spark.
-      int dir = sp->vel > 0 ? +1 : -1;
+      int dir = sp->vel > 0 ? -1 : +1;
       int n_pix = sp->contrail_pixels;
       float decay = sp->contrail_decay;
       for (int j = 0; j < n_pix; j++) {  // N.B. j must be signed
